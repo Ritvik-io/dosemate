@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "102442183397",
+    "project_id": "dosemate-b6de5",
+    "storage_bucket": "dosemate-b6de5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102442183397:android:425a53136f57c3fc39c20c",
+        "android_client_info": {
+          "package_name": "com.example.dosemate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjDMOH8fAWTDuaNnWhnp-ZvapvAOkUgOs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
