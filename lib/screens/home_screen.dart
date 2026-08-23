@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'history_screen.dart';
+import 'profile_screen.dart';
 import 'add_medicine_screen.dart';
 import 'medications_screen.dart';
 
@@ -66,8 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 16,
               ),
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   RichText(
                     text: const TextSpan(
@@ -124,7 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: StreamBuilder<
                   QuerySnapshot<Map<String, dynamic>>>(
                 stream: medicationsQuery.snapshots(),
-
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return const Center(
@@ -447,7 +447,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          // Medicine icon
           Container(
             width: 70,
             height: 70,
@@ -464,7 +463,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(width: 18),
 
-          // Dose information
           Expanded(
             child: Column(
               crossAxisAlignment:
@@ -529,7 +527,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(width: 8),
 
-          // Arrow
           Container(
             width: 42,
             height: 42,
@@ -552,416 +549,402 @@ class _HomeScreenState extends State<HomeScreen> {
   // HOME MEDICATION CARD
   // ================================================================
 
- Widget _homeMedicationCard(
-  QueryDocumentSnapshot<Map<String, dynamic>> doc,
-) {
-  final data = doc.data();
+  Widget _homeMedicationCard(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
 
-  final name =
-      data['name']?.toString() ?? 'Unknown medication';
+    final name =
+        data['name']?.toString() ??
+            'Unknown medication';
 
-  final dosage =
-      data['dosage']?.toString() ?? '';
+    final dosage =
+        data['dosage']?.toString() ?? '';
 
-  final unit =
-      data['unit']?.toString() ?? '';
+    final unit =
+        data['unit']?.toString() ?? '';
 
-  final form =
-      data['form']?.toString() ?? 'Pill';
+    final form =
+        data['form']?.toString() ?? 'Pill';
 
-  final times = List<String>.from(
-    data['times'] ?? [],
-  );
+    final times = List<String>.from(
+      data['times'] ?? [],
+    );
 
-  final firstTime =
-      times.isNotEmpty ? times.first : 'No time';
+    final firstTime =
+        times.isNotEmpty ? times.first : 'No time';
 
-  // ------------------------------------------------------------
-  // STATUS FOR TODAY
-  // ------------------------------------------------------------
+    final today = DateTime.now();
 
-  final today = DateTime.now();
+    final dateKey =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
-  final dateKey =
-      '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final statusKey = '${dateKey}_$firstTime';
 
-  final statusKey = '${dateKey}_$firstTime';
+    final doseStatus =
+        Map<String, dynamic>.from(
+      data['doseStatus'] ?? {},
+    );
 
-  final doseStatus =
-      Map<String, dynamic>.from(
-    data['doseStatus'] ?? {},
-  );
+    final status =
+        doseStatus[statusKey]?.toString() ??
+            'upcoming';
 
-  final status =
-      doseStatus[statusKey]?.toString() ?? 'upcoming';
-
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(22),
-      border: Border.all(
-        color: const Color(0xFFE2E8F0),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.04),
-          blurRadius: 15,
-          offset: const Offset(0, 5),
-        ),
-      ],
-    ),
-
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ========================================================
-        // TOP
-        // ========================================================
-
-        Row(
-          children: [
-            // Blue accent
-            Container(
-              width: 5,
-              height: 82,
-              decoration: BoxDecoration(
-                color: status == 'taken'
-                    ? const Color(0xFF22A865)
-                    : status == 'skipped'
-                        ? Colors.orange
-                        : primaryBlue,
-                borderRadius:
-                    BorderRadius.circular(10),
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            // Medicine icon
-            Container(
-              width: 62,
-              height: 62,
-              decoration: BoxDecoration(
-                color: status == 'taken'
-                    ? const Color(0xFFE9F9F0)
-                    : status == 'skipped'
-                        ? const Color(0xFFFFF4E5)
-                        : const Color(0xFFEAF1FF),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _getMedicationIcon(form),
-                color: status == 'taken'
-                    ? const Color(0xFF22A865)
-                    : status == 'skipped'
-                        ? Colors.orange
-                        : primaryBlue,
-                size: 32,
-              ),
-            ),
-
-            const SizedBox(width: 15),
-
-            // Medicine information
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w800,
-                      color: darkText,
-                    ),
-                  ),
-
-                  const SizedBox(height: 5),
-
-                  Text(
-                    '$dosage $unit • $form',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: secondaryText,
-                      fontWeight:
-                          FontWeight.w500,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          const Color(0xFFF3F6FA),
-                      borderRadius:
-                          BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize:
-                          MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.access_time_rounded,
-                          size: 17,
-                          color: secondaryText,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          firstTime,
-                          style:
-                              const TextStyle(
-                            color: darkText,
-                            fontWeight:
-                                FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 15),
-
-        // ========================================================
-        // STATUS
-        // ========================================================
-
-        if (status == 'upcoming')
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
-              // TAKEN
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    _updateDoseStatus(
-                      doc,
-                      firstTime,
-                      'taken',
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.check_circle_outline_rounded,
-                    size: 19,
-                  ),
-                  label: const Text(
-                    'Taken',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  style:
-                      OutlinedButton.styleFrom(
-                    foregroundColor:
-                        const Color(0xFF22A865),
-                    side: const BorderSide(
-                      color: Color(0xFF9DDBBA),
-                    ),
-                    backgroundColor:
-                        const Color(0xFFF3FCF7),
-                    shape:
-                        RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(13),
-                    ),
-                  ),
+              Container(
+                width: 5,
+                height: 82,
+                decoration: BoxDecoration(
+                  color: status == 'taken'
+                      ? const Color(0xFF22A865)
+                      : status == 'skipped'
+                          ? Colors.orange
+                          : primaryBlue,
+                  borderRadius:
+                      BorderRadius.circular(10),
                 ),
               ),
 
-              const SizedBox(width: 10),
+              const SizedBox(width: 14),
 
-              // SKIP
+              Container(
+                width: 62,
+                height: 62,
+                decoration: BoxDecoration(
+                  color: status == 'taken'
+                      ? const Color(0xFFE9F9F0)
+                      : status == 'skipped'
+                          ? const Color(0xFFFFF4E5)
+                          : const Color(0xFFEAF1FF),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _getMedicationIcon(form),
+                  color: status == 'taken'
+                      ? const Color(0xFF22A865)
+                      : status == 'skipped'
+                          ? Colors.orange
+                          : primaryBlue,
+                  size: 32,
+                ),
+              ),
+
+              const SizedBox(width: 15),
+
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    _updateDoseStatus(
-                      doc,
-                      firstTime,
-                      'skipped',
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    size: 19,
-                  ),
-                  label: const Text(
-                    'Skip',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow:
+                          TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        color: darkText,
+                      ),
                     ),
-                  ),
-                  style:
-                      OutlinedButton.styleFrom(
-                    foregroundColor:
-                        Colors.orange,
-                    side: const BorderSide(
-                      color: Color(0xFFF2C48A),
+
+                    const SizedBox(height: 5),
+
+                    Text(
+                      '$dosage $unit • $form',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: secondaryText,
+                        fontWeight:
+                            FontWeight.w500,
+                      ),
                     ),
-                    backgroundColor:
-                        const Color(0xFFFFFAF2),
-                    shape:
-                        RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(13),
+
+                    const SizedBox(height: 10),
+
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            const Color(0xFFF3F6FA),
+                        borderRadius:
+                            BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize:
+                            MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.access_time_rounded,
+                            size: 17,
+                            color: secondaryText,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            firstTime,
+                            style:
+                                const TextStyle(
+                              color: darkText,
+                              fontWeight:
+                                  FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
-          )
-        else
-          // ======================================================
-          // ALREADY TAKEN / SKIPPED
-          // ======================================================
+          ),
 
-          Container(
-            width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(
-              vertical: 12,
-              horizontal: 14,
-            ),
-            decoration: BoxDecoration(
-              color: status == 'taken'
-                  ? const Color(0xFFE9F9F0)
-                  : const Color(0xFFFFF4E5),
-              borderRadius:
-                  BorderRadius.circular(13),
-            ),
-            child: Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
+          const SizedBox(height: 15),
+
+          if (status == 'upcoming')
+            Row(
               children: [
-                Icon(
-                  status == 'taken'
-                      ? Icons.check_circle_rounded
-                      : Icons
-                          .remove_circle_outline_rounded,
-                  size: 20,
-                  color: status == 'taken'
-                      ? const Color(0xFF22A865)
-                      : Colors.orange,
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _updateDoseStatus(
+                        doc,
+                        firstTime,
+                        'taken',
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 19,
+                    ),
+                    label: const Text(
+                      'Taken',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    style:
+                        OutlinedButton.styleFrom(
+                      foregroundColor:
+                          const Color(0xFF22A865),
+                      side: const BorderSide(
+                        color: Color(0xFF9DDBBA),
+                      ),
+                      backgroundColor:
+                          const Color(0xFFF3FCF7),
+                      shape:
+                          RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(13),
+                      ),
+                    ),
+                  ),
                 ),
 
-                const SizedBox(width: 7),
+                const SizedBox(width: 10),
 
-                Text(
-                  status == 'taken'
-                      ? 'Taken'
-                      : 'Skipped',
-                  style: TextStyle(
-                    fontWeight:
-                        FontWeight.w800,
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _updateDoseStatus(
+                        doc,
+                        firstTime,
+                        'skipped',
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 19,
+                    ),
+                    label: const Text(
+                      'Skip',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    style:
+                        OutlinedButton.styleFrom(
+                      foregroundColor:
+                          Colors.orange,
+                      side: const BorderSide(
+                        color: Color(0xFFF2C48A),
+                      ),
+                      backgroundColor:
+                          const Color(0xFFFFFAF2),
+                      shape:
+                          RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(13),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 14,
+              ),
+              decoration: BoxDecoration(
+                color: status == 'taken'
+                    ? const Color(0xFFE9F9F0)
+                    : const Color(0xFFFFF4E5),
+                borderRadius:
+                    BorderRadius.circular(13),
+              ),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    status == 'taken'
+                        ? Icons.check_circle_rounded
+                        : Icons
+                            .remove_circle_outline_rounded,
+                    size: 20,
                     color: status == 'taken'
                         ? const Color(0xFF22A865)
                         : Colors.orange,
                   ),
-                ),
 
-                const Spacer(),
+                  const SizedBox(width: 7),
 
-                // Allow changing status
-                GestureDetector(
-                  onTap: () {
-                    _updateDoseStatus(
-                      doc,
-                      firstTime,
-                      'upcoming',
-                    );
-                  },
-                  child: Text(
-                    'Change',
+                  Text(
+                    status == 'taken'
+                        ? 'Taken'
+                        : 'Skipped',
                     style: TextStyle(
-                      fontSize: 12,
                       fontWeight:
-                          FontWeight.w700,
+                          FontWeight.w800,
                       color: status == 'taken'
                           ? const Color(0xFF22A865)
                           : Colors.orange,
                     ),
                   ),
-                ),
-              ],
+
+                  const Spacer(),
+
+                  GestureDetector(
+                    onTap: () {
+                      _updateDoseStatus(
+                        doc,
+                        firstTime,
+                        'upcoming',
+                      );
+                    },
+                    child: Text(
+                      'Change',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight:
+                            FontWeight.w700,
+                        color: status == 'taken'
+                            ? const Color(0xFF22A865)
+                            : Colors.orange,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  // ================================================================
+  // UPDATE DOSE STATUS
+  // ================================================================
+
+  Future<void> _updateDoseStatus(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+    String time,
+    String status,
+  ) async {
+    final now = DateTime.now();
+
+    final dateKey =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+    final statusKey = '${dateKey}_$time';
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('medications')
+          .doc(doc.id)
+          .update({
+        'doseStatus.$statusKey': status,
+      });
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            status == 'taken'
+                ? 'Dose marked as taken ✓'
+                : status == 'skipped'
+                    ? 'Dose skipped'
+                    : 'Dose marked as upcoming',
           ),
-      ],
-    ),
-  );
-}
-Future<void> _updateDoseStatus(
-  QueryDocumentSnapshot<Map<String, dynamic>> doc,
-  String time,
-  String status,
-) async {
-  final now = DateTime.now();
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
 
-  final dateKey =
-      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-
-  final statusKey = '${dateKey}_$time';
-
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) {
-    return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not update dose status.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
-  try {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('medications')
-        .doc(doc.id)
-        .update({
-      'doseStatus.$statusKey': status,
-    });
-
-    if (!mounted) {
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          status == 'taken'
-              ? 'Dose marked as taken ✓'
-              : status == 'skipped'
-                  ? 'Dose skipped'
-                  : 'Dose marked as upcoming',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  } catch (e) {
-    if (!mounted) {
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Could not update dose status.',
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-}
   // ================================================================
   // EMPTY NEXT DOSE
   // ================================================================
@@ -1112,8 +1095,6 @@ Future<void> _updateDoseStatus(
       }
     }
 
-    // If today's doses are finished,
-    // show the earliest dose tomorrow.
     if (bestDose == null) {
       bestMinutes = null;
 
@@ -1292,73 +1273,84 @@ Future<void> _updateDoseStatus(
   // ================================================================
 
   Widget _navItem({
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
-    final selected =
-        selectedIndex == index;
+  required IconData icon,
+  required String label,
+  required int index,
+}) {
+  final selected = selectedIndex == index;
 
-    return GestureDetector(
-      onTap: () {
-        if (index == 0) {
-          setState(() {
-            selectedIndex = 0;
-          });
-          return;
-        }
+  return GestureDetector(
+    onTap: () {
+      if (index == 0) {
+        setState(() {
+          selectedIndex = 0;
+        });
+        return;
+      }
 
-        if (index == 1) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  const MedicationsScreen(),
-            ),
-          );
-          return;
-        }
+      if (index == 1) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MedicationsScreen(),
+          ),
+        );
+        return;
+      }
 
-        // History and Profile will be connected later.
-      },
+      if (index == 2) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HistoryScreen(),
+          ),
+        );
+        return;
+      }
 
-      behavior: HitTestBehavior.opaque,
+      if (index == 3) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ProfileScreen(),
+          ),
+        );
+        return;
+      }
+    },
 
-      child: SizedBox(
-        width: 78,
-        child: Column(
-          mainAxisSize:
-              MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 27,
+    behavior: HitTestBehavior.opaque,
+
+    child: SizedBox(
+      width: 78,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 27,
+            color: selected
+                ? primaryBlue
+                : const Color(0xFF94A3B8),
+          ),
+
+          const SizedBox(height: 4),
+
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: selected
+                  ? FontWeight.w700
+                  : FontWeight.w500,
               color: selected
                   ? primaryBlue
-                  : const Color(
-                      0xFF94A3B8,
-                    ),
+                  : const Color(0xFF64748B),
             ),
-
-            const SizedBox(height: 4),
-
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: selected
-                    ? FontWeight.w700
-                    : FontWeight.w500,
-                color: selected
-                    ? primaryBlue
-                    : const Color(
-                        0xFF64748B,
-                      ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

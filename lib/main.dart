@@ -13,10 +13,17 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize local notifications
-  await NotificationService.instance.initialize();
-
+  // Start the app FIRST.
   runApp(const DoseMateApp());
+
+  // Initialize notifications after the UI has started.
+  try {
+    await NotificationService.instance.initialize();
+    print('NOTIFICATIONS INITIALIZED SUCCESSFULLY');
+  } catch (e, stackTrace) {
+    print('NOTIFICATION INITIALIZATION FAILED: $e');
+    print(stackTrace);
+  }
 }
 
 class DoseMateApp extends StatelessWidget {

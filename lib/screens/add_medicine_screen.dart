@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'home_screen.dart';
 import 'medications_screen.dart';
 import '../notification_service.dart';
@@ -22,32 +23,60 @@ class AddMedicineScreen extends StatefulWidget {
       _AddMedicineScreenState();
 }
 
-class _AddMedicineScreenState extends State<AddMedicineScreen> {
-  static const Color primaryBlue = Color(0xFF3563E9);
-  static const Color darkText = Color(0xFF111827);
-  static const Color secondaryText = Color(0xFF64748B);
-  static const Color lightBlue = Color(0xFFF1F6FF);
-  static const Color borderColor = Color(0xFFDCE5F5);
+class _AddMedicineScreenState
+    extends State<AddMedicineScreen> {
+  static const Color primaryBlue =
+      Color(0xFF3563E9);
 
-  final TextEditingController medicineNameController =
+  static const Color darkText =
+      Color(0xFF111827);
+
+  static const Color secondaryText =
+      Color(0xFF64748B);
+
+  static const Color lightBlue =
+      Color(0xFFF1F6FF);
+
+  static const Color borderColor =
+      Color(0xFFDCE5F5);
+
+  // ============================================================
+  // CONTROLLERS
+  // ============================================================
+
+  final TextEditingController
+      medicineNameController =
       TextEditingController();
 
-  final TextEditingController dosageController =
+  final TextEditingController
+      dosageController =
       TextEditingController();
 
-  final TextEditingController noteController =
+  final TextEditingController
+      noteController =
       TextEditingController();
 
-  final TextEditingController amountController =
+  final TextEditingController
+      amountController =
       TextEditingController();
+
+  // ============================================================
+  // SELECTIONS
+  // ============================================================
 
   String selectedUnit = 'mg';
   String selectedForm = 'Pill';
   String selectedFrequency = 'Daily';
 
   List<TimeOfDay> scheduleTimes = [
-    const TimeOfDay(hour: 9, minute: 0),
-    const TimeOfDay(hour: 12, minute: 0),
+    const TimeOfDay(
+      hour: 9,
+      minute: 0,
+    ),
+    const TimeOfDay(
+      hour: 12,
+      minute: 0,
+    ),
   ];
 
   // ============================================================
@@ -72,7 +101,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       return;
     }
 
-    final data = doc.data() as Map<String, dynamic>;
+    final data =
+        doc.data() as Map<String, dynamic>;
 
     medicineNameController.text =
         data['name']?.toString() ?? '';
@@ -95,7 +125,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     selectedFrequency =
         data['frequency']?.toString() ?? 'Daily';
 
-    final savedTimes = List<String>.from(
+    final savedTimes =
+        List<String>.from(
       data['times'] ?? [],
     );
 
@@ -117,22 +148,28 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
 
   TimeOfDay? _parseTime(String value) {
     try {
-      final parts = value.trim().split(' ');
+      final parts =
+          value.trim().split(' ');
 
       if (parts.length != 2) {
         return null;
       }
 
-      final timeParts = parts[0].split(':');
+      final timeParts =
+          parts[0].split(':');
 
       if (timeParts.length != 2) {
         return null;
       }
 
-      int hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
+      int hour =
+          int.parse(timeParts[0]);
 
-      final period = parts[1].toUpperCase();
+      final minute =
+          int.parse(timeParts[1]);
+
+      final period =
+          parts[1].toUpperCase();
 
       if (period == 'PM' && hour != 12) {
         hour += 12;
@@ -170,20 +207,23 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   // ============================================================
 
   Future<void> selectTime(int index) async {
-    final pickedTime = await showTimePicker(
+    final pickedTime =
+        await showTimePicker(
       context: context,
       initialTime: scheduleTimes[index],
     );
 
     if (pickedTime != null) {
       setState(() {
-        scheduleTimes[index] = pickedTime;
+        scheduleTimes[index] =
+            pickedTime;
       });
     }
   }
 
   Future<void> addTime() async {
-    final pickedTime = await showTimePicker(
+    final pickedTime =
+        await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
@@ -210,13 +250,19 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
 
   String formatTime(TimeOfDay time) {
     final hour =
-        time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+        time.hourOfPeriod == 0
+            ? 12
+            : time.hourOfPeriod;
 
     final minute =
-        time.minute.toString().padLeft(2, '0');
+        time.minute
+            .toString()
+            .padLeft(2, '0');
 
     final period =
-        time.period == DayPeriod.am ? 'AM' : 'PM';
+        time.period == DayPeriod.am
+            ? 'AM'
+            : 'PM';
 
     return '$hour:$minute $period';
   }
@@ -237,23 +283,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
 
     final amount =
         amountController.text.trim();
-
-    // ========================================================
-// SCHEDULE NOTIFICATIONS
-// ========================================================
-
-final notificationBaseId =
-    widget.medicationDoc?.id.hashCode ??
-        DateTime.now().millisecondsSinceEpoch;
-
-for (int i = 0; i < scheduleTimes.length; i++) {
-  await NotificationService.instance.scheduleDailyReminder(
-    id: notificationBaseId + i,
-    medicineName: medicineName,
-    dosage: '$dosage $selectedUnit',
-    time: formatTime(scheduleTimes[i]),
-  );
-}
 
     // ----------------------------------------------------------
     // VALIDATION
@@ -291,80 +320,78 @@ for (int i = 0; i < scheduleTimes.length; i++) {
     }
 
     // ----------------------------------------------------------
-    // FIRESTORE
+    // FIRESTORE REFERENCE
     // ----------------------------------------------------------
 
+    final medicationsRef =
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('medications');
+
+    // ----------------------------------------------------------
+    // MEDICATION DATA
+    // ----------------------------------------------------------
+
+    final medicationData = {
+      'name': medicineName,
+      'dosage': dosage,
+      'unit': selectedUnit,
+      'form': selectedForm,
+      'frequency': selectedFrequency,
+
+      'times': scheduleTimes
+          .map(
+            (time) => formatTime(time),
+          )
+          .toList(),
+
+      'note': note,
+      'amountPerDose': amount,
+
+      'updatedAt':
+          FieldValue.serverTimestamp(),
+    };
+
+    DocumentReference?
+        medicationReference;
+
+    // ==========================================================
+    // SAVE TO FIRESTORE FIRST
+    // ==========================================================
+
     try {
-      final medicationData = {
-        'name': medicineName,
-        'dosage': dosage,
-        'unit': selectedUnit,
-        'form': selectedForm,
-        'frequency': selectedFrequency,
-
-        'times': scheduleTimes
-            .map((time) => formatTime(time))
-            .toList(),
-
-        'note': note,
-        'amountPerDose': amount,
-
-        'updatedAt':
-            FieldValue.serverTimestamp(),
-      };
-
-      final medicationsRef =
-          FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .collection('medications');
-
-      // ========================================================
+      // --------------------------------------------------------
       // EDIT EXISTING MEDICATION
-      // ========================================================
+      // --------------------------------------------------------
 
       if (widget.medicationDoc != null) {
-        await medicationsRef
-            .doc(widget.medicationDoc!.id)
-            .update(medicationData);
+        medicationReference =
+            medicationsRef.doc(
+          widget.medicationDoc!.id,
+        );
+
+        await medicationReference.update(
+          medicationData,
+        );
       }
 
-      // ========================================================
+      // --------------------------------------------------------
       // ADD NEW MEDICATION
-      // ========================================================
+      // --------------------------------------------------------
 
       else {
-        await medicationsRef.add({
+        medicationReference =
+            await medicationsRef.add({
           ...medicationData,
           'createdAt':
               FieldValue.serverTimestamp(),
         });
       }
 
-      if (!mounted) {
-        return;
-      }
-
-      // --------------------------------------------------------
-      // SUCCESS MESSAGE
-      // --------------------------------------------------------
-
-      _showMessage(
-        widget.isEditing
-            ? 'Medication updated successfully!'
-            : 'Medication saved successfully!',
+      debugPrint(
+        'MEDICATION SAVED TO FIRESTORE',
       );
-
-      await Future.delayed(
-        const Duration(milliseconds: 700),
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      // Return to medications screen.
-      Navigator.pop(context, true);
     } catch (e) {
       debugPrint(
         'FIRESTORE ERROR: $e',
@@ -379,20 +406,101 @@ for (int i = 0; i < scheduleTimes.length; i++) {
             ? 'Could not update medication.'
             : 'Could not save medication.',
       );
+
+      return;
     }
+
+    // ==========================================================
+    // SCHEDULE NOTIFICATIONS
+    //
+    // IMPORTANT:
+    // Notification failure does NOT undo Firestore save.
+    // ==========================================================
+
+    try {
+      final notificationBaseId =
+          medicationReference!.id.hashCode.abs();
+
+      for (
+        int i = 0;
+        i < scheduleTimes.length;
+        i++
+      ) {
+        await NotificationService
+            .instance
+            .scheduleDailyReminder(
+          id: notificationBaseId + i,
+          medicineName: medicineName,
+          dosage:
+              '$dosage $selectedUnit',
+          time: formatTime(
+            scheduleTimes[i],
+          ),
+        );
+      }
+
+      debugPrint(
+        'NOTIFICATIONS SCHEDULED SUCCESSFULLY',
+      );
+    } catch (e) {
+      debugPrint(
+        'NOTIFICATION ERROR: $e',
+      );
+
+      if (mounted) {
+        _showMessage(
+          'Medication saved, but reminders could not be scheduled.',
+        );
+      }
+    }
+
+    // ==========================================================
+    // SUCCESS
+    // ==========================================================
+
+    if (!mounted) {
+      return;
+    }
+
+    _showMessage(
+      widget.isEditing
+          ? 'Medication updated successfully!'
+          : 'Medication saved successfully!',
+    );
+
+    await Future.delayed(
+      const Duration(
+        milliseconds: 700,
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.pop(
+      context,
+      true,
+    );
   }
 
   // ============================================================
   // MESSAGE
   // ============================================================
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
+  void _showMessage(
+    String message,
+  ) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
       SnackBar(
         content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+        behavior:
+            SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(12),
         ),
       ),
     );
@@ -403,19 +511,22 @@ for (int i = 0; i < scheduleTimes.length; i++) {
   // ============================================================
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Scaffold(
       backgroundColor: Colors.white,
 
       body: SafeArea(
         child: Column(
           children: [
-            // ======================================================
+            // ==================================================
             // TOP BAR
-            // ======================================================
+            // ==================================================
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(
+              padding:
+                  const EdgeInsets.fromLTRB(
                 20,
                 15,
                 20,
@@ -424,35 +535,47 @@ for (int i = 0; i < scheduleTimes.length; i++) {
               child: Row(
                 children: [
                   _circleButton(
-                    icon: Icons.arrow_back_rounded,
+                    icon: Icons
+                        .arrow_back_rounded,
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(
+                        context,
+                      );
                     },
                   ),
 
                   Expanded(
                     child: Center(
                       child: RichText(
-                        text: const TextSpan(
+                        text:
+                            const TextSpan(
                           children: [
                             TextSpan(
                               text: 'DOSE',
-                              style: TextStyle(
-                                color: darkText,
+                              style:
+                                  TextStyle(
+                                color:
+                                    darkText,
                                 fontSize: 26,
                                 fontWeight:
-                                    FontWeight.w800,
-                                letterSpacing: -1,
+                                    FontWeight
+                                        .w800,
+                                letterSpacing:
+                                    -1,
                               ),
                             ),
                             TextSpan(
                               text: 'MATE',
-                              style: TextStyle(
-                                color: primaryBlue,
+                              style:
+                                  TextStyle(
+                                color:
+                                    primaryBlue,
                                 fontSize: 26,
                                 fontWeight:
-                                    FontWeight.w800,
-                                letterSpacing: -1,
+                                    FontWeight
+                                        .w800,
+                                letterSpacing:
+                                    -1,
                               ),
                             ),
                           ],
@@ -462,8 +585,8 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                   ),
 
                   _circleButton(
-                    icon:
-                        Icons.person_outline_rounded,
+                    icon: Icons
+                        .person_outline_rounded,
                     onTap: () {},
                   ),
                 ],
@@ -472,16 +595,19 @@ for (int i = 0; i < scheduleTimes.length; i++) {
 
             Container(
               height: 1,
-              color: const Color(0xFFE5E7EB),
+              color:
+                  const Color(0xFFE5E7EB),
             ),
 
-            // ======================================================
+            // ==================================================
             // CONTENT
-            // ======================================================
+            // ==================================================
 
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
+              child:
+                  SingleChildScrollView(
+                padding:
+                    const EdgeInsets.fromLTRB(
                   20,
                   24,
                   20,
@@ -499,59 +625,78 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                       widget.isEditing
                           ? 'Edit Medication'
                           : 'Add New Medication',
-                      style: const TextStyle(
+                      style:
+                          const TextStyle(
                         fontSize: 29,
                         fontWeight:
                             FontWeight.w800,
                         color: darkText,
-                        letterSpacing: -0.8,
+                        letterSpacing:
+                            -0.8,
                       ),
                     ),
 
-                    const SizedBox(height: 7),
+                    const SizedBox(
+                      height: 7,
+                    ),
 
                     Text(
                       widget.isEditing
                           ? 'Update your medication details'
                           : 'Fill in the details to set smart reminders',
-                      style: const TextStyle(
+                      style:
+                          const TextStyle(
                         fontSize: 14,
-                        color: secondaryText,
+                        color:
+                            secondaryText,
                       ),
                     ),
 
-                    const SizedBox(height: 25),
+                    const SizedBox(
+                      height: 25,
+                    ),
 
                     // ==================================================
                     // FORM CARD
                     // ==================================================
 
                     Container(
-                      width: double.infinity,
+                      width:
+                          double.infinity,
                       padding:
-                          const EdgeInsets.all(18),
+                          const EdgeInsets
+                              .all(18),
                       decoration:
                           BoxDecoration(
                         color: Colors.white,
                         borderRadius:
-                            BorderRadius.circular(28),
+                            BorderRadius
+                                .circular(28),
                         border: Border.all(
-                          color: borderColor,
+                          color:
+                              borderColor,
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: primaryBlue
-                                .withOpacity(0.06),
+                            color:
+                                primaryBlue
+                                    .withOpacity(
+                              0.06,
+                            ),
                             blurRadius: 25,
                             offset:
-                                const Offset(0, 8),
+                                const Offset(
+                              0,
+                              8,
+                            ),
                           ),
                         ],
                       ),
                       child: Column(
                         crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                            CrossAxisAlignment
+                                .start,
                         children: [
                           // ==================================================
                           // MEDICATION NAME
@@ -559,21 +704,26 @@ for (int i = 0; i < scheduleTimes.length; i++) {
 
                           _sectionTitle(
                             'Medication Name',
-                            Icons.medication_outlined,
+                            Icons
+                                .medication_outlined,
                           ),
 
-                          const SizedBox(height: 10),
+                          const SizedBox(
+                            height: 10,
+                          ),
 
                           _textField(
                             controller:
                                 medicineNameController,
                             hint:
                                 'Enter brand or chemical name',
-                            icon:
-                                Icons.medication_outlined,
+                            icon: Icons
+                                .medication_outlined,
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(
+                            height: 24,
+                          ),
 
                           // ==================================================
                           // DOSAGE
@@ -585,12 +735,15 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                 .monitor_weight_outlined,
                           ),
 
-                          const SizedBox(height: 10),
+                          const SizedBox(
+                            height: 10,
+                          ),
 
                           Row(
                             children: [
                               Expanded(
-                                child: _textField(
+                                child:
+                                    _textField(
                                   controller:
                                       dosageController,
                                   hint:
@@ -601,21 +754,35 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                 ),
                               ),
 
-                              const SizedBox(width: 8),
+                              const SizedBox(
+                                width: 8,
+                              ),
 
-                              _unitButton('mg'),
+                              _unitButton(
+                                'mg',
+                              ),
 
-                              const SizedBox(width: 7),
+                              const SizedBox(
+                                width: 7,
+                              ),
 
-                              _unitButton('mcg'),
+                              _unitButton(
+                                'mcg',
+                              ),
 
-                              const SizedBox(width: 7),
+                              const SizedBox(
+                                width: 7,
+                              ),
 
-                              _unitButton('mL'),
+                              _unitButton(
+                                'mL',
+                              ),
                             ],
                           ),
 
-                          const SizedBox(height: 25),
+                          const SizedBox(
+                            height: 25,
+                          ),
 
                           // ==================================================
                           // FORM
@@ -623,49 +790,66 @@ for (int i = 0; i < scheduleTimes.length; i++) {
 
                           const Text(
                             'Medication Form',
-                            style: TextStyle(
+                            style:
+                                TextStyle(
                               fontSize: 16,
                               fontWeight:
-                                  FontWeight.w800,
-                              color: darkText,
+                                  FontWeight
+                                      .w800,
+                              color:
+                                  darkText,
                             ),
                           ),
 
-                          const SizedBox(height: 10),
+                          const SizedBox(
+                            height: 10,
+                          ),
 
                           Row(
                             children: [
                               Expanded(
-                                child: _formButton(
+                                child:
+                                    _formButton(
                                   icon: Icons
                                       .medication_rounded,
-                                  label: 'Pill',
+                                  label:
+                                      'Pill',
                                 ),
                               ),
 
-                              const SizedBox(width: 8),
+                              const SizedBox(
+                                width: 8,
+                              ),
 
                               Expanded(
-                                child: _formButton(
+                                child:
+                                    _formButton(
                                   icon: Icons
                                       .local_drink_outlined,
-                                  label: 'Liquid',
+                                  label:
+                                      'Liquid',
                                 ),
                               ),
 
-                              const SizedBox(width: 8),
+                              const SizedBox(
+                                width: 8,
+                              ),
 
                               Expanded(
-                                child: _formButton(
-                                  icon:
-                                      Icons.air_rounded,
-                                  label: 'Inhaler',
+                                child:
+                                    _formButton(
+                                  icon: Icons
+                                      .air_rounded,
+                                  label:
+                                      'Inhaler',
                                 ),
                               ),
                             ],
                           ),
 
-                          const SizedBox(height: 25),
+                          const SizedBox(
+                            height: 25,
+                          ),
 
                           // ==================================================
                           // FREQUENCY
@@ -673,15 +857,20 @@ for (int i = 0; i < scheduleTimes.length; i++) {
 
                           const Text(
                             'Frequency',
-                            style: TextStyle(
+                            style:
+                                TextStyle(
                               fontSize: 16,
                               fontWeight:
-                                  FontWeight.w800,
-                              color: darkText,
+                                  FontWeight
+                                      .w800,
+                              color:
+                                  darkText,
                             ),
                           ),
 
-                          const SizedBox(height: 10),
+                          const SizedBox(
+                            height: 10,
+                          ),
 
                           Row(
                             children: [
@@ -692,7 +881,9 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                 ),
                               ),
 
-                              const SizedBox(width: 7),
+                              const SizedBox(
+                                width: 7,
+                              ),
 
                               Expanded(
                                 child:
@@ -701,7 +892,9 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                 ),
                               ),
 
-                              const SizedBox(width: 7),
+                              const SizedBox(
+                                width: 7,
+                              ),
 
                               Expanded(
                                 child:
@@ -712,7 +905,9 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                             ],
                           ),
 
-                          const SizedBox(height: 25),
+                          const SizedBox(
+                            height: 25,
+                          ),
 
                           // ==================================================
                           // SCHEDULE + NOTE
@@ -720,23 +915,28 @@ for (int i = 0; i < scheduleTimes.length; i++) {
 
                           Row(
                             crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                                CrossAxisAlignment
+                                    .start,
                             children: [
                               Expanded(
                                 flex: 5,
-                                child: Column(
+                                child:
+                                    Column(
                                   crossAxisAlignment:
                                       CrossAxisAlignment
                                           .start,
                                   children: [
                                     const Text(
                                       'Schedule Times',
-                                      style: TextStyle(
-                                        fontSize: 15,
+                                      style:
+                                          TextStyle(
+                                        fontSize:
+                                            15,
                                         fontWeight:
                                             FontWeight
                                                 .w800,
-                                        color: darkText,
+                                        color:
+                                            darkText,
                                       ),
                                     ),
 
@@ -744,14 +944,16 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                       height: 10,
                                     ),
 
-                                    ...List.generate(
-                                      scheduleTimes.length,
+                                    ...List
+                                        .generate(
+                                      scheduleTimes
+                                          .length,
                                       (index) {
                                         return Padding(
                                           padding:
-                                              const EdgeInsets
-                                                  .only(
-                                            bottom: 8,
+                                              const EdgeInsets.only(
+                                            bottom:
+                                                8,
                                           ),
                                           child:
                                               _timeTile(
@@ -781,21 +983,20 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                           'Add time',
                                         ),
                                         style:
-                                            OutlinedButton
-                                                .styleFrom(
+                                            OutlinedButton.styleFrom(
                                           foregroundColor:
                                               primaryBlue,
                                           side:
                                               const BorderSide(
                                             color:
                                                 primaryBlue,
-                                            width: 1.3,
+                                            width:
+                                                1.3,
                                           ),
                                           shape:
                                               RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius
-                                                    .circular(
+                                                BorderRadius.circular(
                                               14,
                                             ),
                                           ),
@@ -806,23 +1007,29 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                 ),
                               ),
 
-                              const SizedBox(width: 15),
+                              const SizedBox(
+                                width: 15,
+                              ),
 
                               Expanded(
                                 flex: 4,
-                                child: Column(
+                                child:
+                                    Column(
                                   crossAxisAlignment:
                                       CrossAxisAlignment
                                           .start,
                                   children: [
                                     const Text(
                                       'Note',
-                                      style: TextStyle(
-                                        fontSize: 15,
+                                      style:
+                                          TextStyle(
+                                        fontSize:
+                                            15,
                                         fontWeight:
                                             FontWeight
                                                 .w800,
-                                        color: darkText,
+                                        color:
+                                            darkText,
                                       ),
                                     ),
 
@@ -833,7 +1040,8 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                     TextField(
                                       controller:
                                           noteController,
-                                      maxLines: 6,
+                                      maxLines:
+                                          6,
                                       decoration:
                                           InputDecoration(
                                         hintText:
@@ -842,9 +1050,11 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                             const TextStyle(
                                           color:
                                               secondaryText,
-                                          fontSize: 13,
+                                          fontSize:
+                                              13,
                                         ),
-                                        filled: true,
+                                        filled:
+                                            true,
                                         fillColor:
                                             const Color(
                                           0xFFFAFBFF,
@@ -857,8 +1067,7 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                         border:
                                             OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius
-                                                  .circular(
+                                              BorderRadius.circular(
                                             15,
                                           ),
                                           borderSide:
@@ -870,14 +1079,27 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                         enabledBorder:
                                             OutlineInputBorder(
                                           borderRadius:
-                                              BorderRadius
-                                                  .circular(
+                                              BorderRadius.circular(
                                             15,
                                           ),
                                           borderSide:
                                               const BorderSide(
                                             color:
                                                 borderColor,
+                                          ),
+                                        ),
+                                        focusedBorder:
+                                            OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                            15,
+                                          ),
+                                          borderSide:
+                                              const BorderSide(
+                                            color:
+                                                primaryBlue,
+                                            width:
+                                                1.5,
                                           ),
                                         ),
                                       ),
@@ -888,7 +1110,9 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                             ],
                           ),
 
-                          const SizedBox(height: 25),
+                          const SizedBox(
+                            height: 25,
+                          ),
 
                           // ==================================================
                           // AMOUNT PER DOSE
@@ -900,7 +1124,9 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                                 .local_pharmacy_outlined,
                           ),
 
-                          const SizedBox(height: 10),
+                          const SizedBox(
+                            height: 10,
+                          ),
 
                           _textField(
                             controller:
@@ -912,24 +1138,28 @@ for (int i = 0; i < scheduleTimes.length; i++) {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(
+                      height: 20,
+                    ),
 
                     // ==================================================
                     // SAVE / UPDATE BUTTON
                     // ==================================================
 
                     SizedBox(
-                      width: double.infinity,
+                      width:
+                          double.infinity,
                       height: 62,
-                      child: ElevatedButton(
-onPressed: () {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('BUTTON WORKS!'),
-    ),
-  );
-},           style:
-                            ElevatedButton.styleFrom(
+                      child:
+                          ElevatedButton(
+                        // IMPORTANT:
+                        // This now calls the real save function.
+                        onPressed:
+                            saveMedication,
+
+                        style:
+                            ElevatedButton
+                                .styleFrom(
                           backgroundColor:
                               primaryBlue,
                           foregroundColor:
@@ -937,18 +1167,23 @@ onPressed: () {
                           elevation: 5,
                           shadowColor:
                               primaryBlue
-                                  .withOpacity(0.3),
+                                  .withOpacity(
+                            0.3,
+                          ),
                           shape:
                               RoundedRectangleBorder(
                             borderRadius:
-                                BorderRadius.circular(
+                                BorderRadius
+                                    .circular(
                               20,
                             ),
                           ),
                         ),
+
                         child: Row(
                           mainAxisAlignment:
-                              MainAxisAlignment.center,
+                              MainAxisAlignment
+                                  .center,
                           children: [
                             Icon(
                               widget.isEditing
@@ -959,7 +1194,9 @@ onPressed: () {
                               size: 29,
                             ),
 
-                            const SizedBox(width: 10),
+                            const SizedBox(
+                              width: 10,
+                            ),
 
                             Text(
                               widget.isEditing
@@ -969,7 +1206,8 @@ onPressed: () {
                                   const TextStyle(
                                 fontSize: 17,
                                 fontWeight:
-                                    FontWeight.w800,
+                                    FontWeight
+                                        .w800,
                               ),
                             ),
                           ],
@@ -1006,7 +1244,8 @@ onPressed: () {
       child: Container(
         width: 45,
         height: 45,
-        decoration: const BoxDecoration(
+        decoration:
+            const BoxDecoration(
           color: lightBlue,
           shape: BoxShape.circle,
         ),
@@ -1044,13 +1283,17 @@ onPressed: () {
           ),
         ),
 
-        const SizedBox(width: 11),
+        const SizedBox(
+          width: 11,
+        ),
 
         Text(
           title,
-          style: const TextStyle(
+          style:
+              const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w800,
+            fontWeight:
+                FontWeight.w800,
             color: darkText,
           ),
         ),
@@ -1063,7 +1306,8 @@ onPressed: () {
   // ============================================================
 
   Widget _textField({
-    required TextEditingController controller,
+    required TextEditingController
+        controller,
     required String hint,
     IconData? icon,
     TextInputType? keyboardType,
@@ -1074,12 +1318,16 @@ onPressed: () {
       style: const TextStyle(
         fontSize: 15,
         color: darkText,
-        fontWeight: FontWeight.w500,
+        fontWeight:
+            FontWeight.w500,
       ),
-      decoration: InputDecoration(
+      decoration:
+          InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(
-          color: Color(0xFF94A3B8),
+        hintStyle:
+            const TextStyle(
+          color:
+              Color(0xFF94A3B8),
           fontSize: 14,
         ),
 
@@ -1087,7 +1335,8 @@ onPressed: () {
             ? null
             : Icon(
                 icon,
-                color: secondaryText,
+                color:
+                    secondaryText,
               ),
 
         filled: true,
@@ -1095,14 +1344,18 @@ onPressed: () {
             const Color(0xFFFAFBFF),
 
         contentPadding:
-            const EdgeInsets.symmetric(
+            const EdgeInsets
+                .symmetric(
           horizontal: 16,
           vertical: 16,
         ),
 
-        border: OutlineInputBorder(
+        border:
+            OutlineInputBorder(
           borderRadius:
-              BorderRadius.circular(15),
+              BorderRadius.circular(
+            15,
+          ),
           borderSide:
               const BorderSide(
             color: borderColor,
@@ -1112,7 +1365,9 @@ onPressed: () {
         enabledBorder:
             OutlineInputBorder(
           borderRadius:
-              BorderRadius.circular(15),
+              BorderRadius.circular(
+            15,
+          ),
           borderSide:
               const BorderSide(
             color: borderColor,
@@ -1122,7 +1377,9 @@ onPressed: () {
         focusedBorder:
             OutlineInputBorder(
           borderRadius:
-              BorderRadius.circular(15),
+              BorderRadius.circular(
+            15,
+          ),
           borderSide:
               const BorderSide(
             color: primaryBlue,
@@ -1137,7 +1394,9 @@ onPressed: () {
   // UNIT BUTTON
   // ============================================================
 
-  Widget _unitButton(String unit) {
+  Widget _unitButton(
+    String unit,
+  ) {
     final selected =
         selectedUnit == unit;
 
@@ -1150,18 +1409,21 @@ onPressed: () {
       child: Container(
         height: 54,
         padding:
-            const EdgeInsets.symmetric(
+            const EdgeInsets
+                .symmetric(
           horizontal: 13,
         ),
         decoration:
             BoxDecoration(
           color: selected
               ? lightBlue
-              : const Color(0xFFF3F5F9),
-
+              : const Color(
+                  0xFFF3F5F9,
+                ),
           borderRadius:
-              BorderRadius.circular(14),
-
+              BorderRadius.circular(
+            14,
+          ),
           border: Border.all(
             color: selected
                 ? primaryBlue
@@ -1172,7 +1434,8 @@ onPressed: () {
         child: Center(
           child: Text(
             unit,
-            style: TextStyle(
+            style:
+                TextStyle(
               fontWeight:
                   FontWeight.w800,
               color: selected
@@ -1204,27 +1467,33 @@ onPressed: () {
       },
       child: AnimatedContainer(
         duration:
-            const Duration(milliseconds: 200),
+            const Duration(
+          milliseconds: 200,
+        ),
         height: 62,
         decoration:
             BoxDecoration(
           color: selected
               ? lightBlue
-              : const Color(0xFFF8FAFD),
-
+              : const Color(
+                  0xFFF8FAFD,
+                ),
           borderRadius:
-              BorderRadius.circular(16),
-
+              BorderRadius.circular(
+            16,
+          ),
           border: Border.all(
             color: selected
                 ? primaryBlue
                 : borderColor,
-            width: selected ? 1.5 : 1,
+            width:
+                selected ? 1.5 : 1,
           ),
         ),
         child: Column(
           mainAxisAlignment:
-              MainAxisAlignment.center,
+              MainAxisAlignment
+                  .center,
           children: [
             Icon(
               icon,
@@ -1234,11 +1503,14 @@ onPressed: () {
                   : darkText,
             ),
 
-            const SizedBox(height: 3),
+            const SizedBox(
+              height: 3,
+            ),
 
             Text(
               label,
-              style: TextStyle(
+              style:
+                  TextStyle(
                 fontSize: 12,
                 fontWeight:
                     FontWeight.w700,
@@ -1261,32 +1533,39 @@ onPressed: () {
     String frequency,
   ) {
     final selected =
-        selectedFrequency == frequency;
+        selectedFrequency ==
+            frequency;
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedFrequency = frequency;
+          selectedFrequency =
+              frequency;
         });
       },
       child: AnimatedContainer(
         duration:
-            const Duration(milliseconds: 200),
+            const Duration(
+          milliseconds: 200,
+        ),
         height: 52,
         decoration:
             BoxDecoration(
           color: selected
               ? lightBlue
-              : const Color(0xFFF8FAFD),
-
+              : const Color(
+                  0xFFF8FAFD,
+                ),
           borderRadius:
-              BorderRadius.circular(14),
-
+              BorderRadius.circular(
+            14,
+          ),
           border: Border.all(
             color: selected
                 ? primaryBlue
                 : borderColor,
-            width: selected ? 1.5 : 1,
+            width:
+                selected ? 1.5 : 1,
           ),
         ),
         child: Center(
@@ -1294,7 +1573,8 @@ onPressed: () {
             frequency,
             textAlign:
                 TextAlign.center,
-            style: TextStyle(
+            style:
+                TextStyle(
               fontSize: 12,
               fontWeight:
                   FontWeight.w700,
@@ -1312,24 +1592,29 @@ onPressed: () {
   // TIME TILE
   // ============================================================
 
-  Widget _timeTile(int index) {
+  Widget _timeTile(
+    int index,
+  ) {
     return GestureDetector(
       onTap: () =>
           selectTime(index),
       child: Container(
         height: 52,
         padding:
-            const EdgeInsets.symmetric(
+            const EdgeInsets
+                .symmetric(
           horizontal: 13,
         ),
         decoration:
             BoxDecoration(
           color:
-              const Color(0xFFFAFBFF),
-
+              const Color(
+            0xFFFAFBFF,
+          ),
           borderRadius:
-              BorderRadius.circular(14),
-
+              BorderRadius.circular(
+            14,
+          ),
           border: Border.all(
             color: borderColor,
           ),
@@ -1337,23 +1622,29 @@ onPressed: () {
         child: Row(
           children: [
             const Icon(
-              Icons.access_time_rounded,
+              Icons
+                  .access_time_rounded,
               size: 19,
-              color: secondaryText,
+              color:
+                  secondaryText,
             ),
 
-            const SizedBox(width: 8),
+            const SizedBox(
+              width: 8,
+            ),
 
             Expanded(
               child: Text(
                 formatTime(
-                  scheduleTimes[index],
+                  scheduleTimes[
+                      index],
                 ),
                 style:
                     const TextStyle(
                   fontSize: 14,
                   fontWeight:
-                      FontWeight.w700,
+                      FontWeight
+                          .w700,
                   color: darkText,
                 ),
               ),
@@ -1362,10 +1653,13 @@ onPressed: () {
             GestureDetector(
               onTap: () =>
                   removeTime(index),
-              child: const Icon(
-                Icons.close_rounded,
+              child:
+                  const Icon(
+                Icons
+                    .close_rounded,
                 size: 19,
-                color: secondaryText,
+                color:
+                    secondaryText,
               ),
             ),
           ],
@@ -1380,22 +1674,30 @@ onPressed: () {
 
   Widget _bottomNavigation() {
     return Container(
-      decoration: BoxDecoration(
+      decoration:
+          BoxDecoration(
         color: Colors.white,
 
-        border: const Border(
+        border:
+            const Border(
           top: BorderSide(
-            color: Color(0xFFE5E7EB),
+            color:
+                Color(0xFFE5E7EB),
           ),
         ),
 
         boxShadow: [
           BoxShadow(
-            color:
-                Colors.black.withOpacity(0.04),
+            color: Colors.black
+                .withOpacity(
+              0.04,
+            ),
             blurRadius: 15,
             offset:
-                const Offset(0, -5),
+                const Offset(
+              0,
+              -5,
+            ),
           ),
         ],
       ),
@@ -1405,14 +1707,16 @@ onPressed: () {
 
         child: Padding(
           padding:
-              const EdgeInsets.symmetric(
+              const EdgeInsets
+                  .symmetric(
             horizontal: 10,
             vertical: 8,
           ),
 
           child: Row(
             mainAxisAlignment:
-                MainAxisAlignment.spaceAround,
+                MainAxisAlignment
+                    .spaceAround,
 
             children: [
               _navItem(
@@ -1422,7 +1726,8 @@ onPressed: () {
               ),
 
               _navItem(
-                Icons.medication_rounded,
+                Icons
+                    .medication_rounded,
                 'Medications',
                 true,
               ),
@@ -1434,7 +1739,8 @@ onPressed: () {
               ),
 
               _navItem(
-                Icons.person_outline_rounded,
+                Icons
+                    .person_outline_rounded,
                 'Profile',
                 false,
               ),
@@ -1445,70 +1751,92 @@ onPressed: () {
     );
   }
 
- Widget _navItem(
-  IconData icon,
-  String label,
-  bool selected,
-) {
-  return GestureDetector(
-    onTap: () {
-      if (label == 'Home') {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ),
-          (route) => false,
-        );
-        return;
-      }
+  // ============================================================
+  // NAVIGATION ITEM
+  // ============================================================
 
-      if (label == 'Medications') {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MedicationsScreen(),
-          ),
-          (route) => false,
-        );
-        return;
-      }
+  Widget _navItem(
+    IconData icon,
+    String label,
+    bool selected,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        if (label == 'Home') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  const HomeScreen(),
+            ),
+            (route) => false,
+          );
 
-      // History and Profile can be connected later.
-    },
+          return;
+        }
 
-    behavior: HitTestBehavior.opaque,
+        if (label == 'Medications') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  const MedicationsScreen(),
+            ),
+            (route) => false,
+          );
 
-    child: SizedBox(
-      width: 78,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 26,
-            color: selected
-                ? primaryBlue
-                : const Color(0xFF94A3B8),
-          ),
+          return;
+        }
 
-          const SizedBox(height: 3),
+        // History and Profile
+        // can be connected later.
+      },
 
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: selected
-                  ? FontWeight.w700
-                  : FontWeight.w500,
+      behavior:
+          HitTestBehavior.opaque,
+
+      child: SizedBox(
+        width: 78,
+
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+
+          children: [
+            Icon(
+              icon,
+              size: 26,
               color: selected
                   ? primaryBlue
-                  : const Color(0xFF64748B),
+                  : const Color(
+                      0xFF94A3B8,
+                    ),
             ),
-          ),
-        ],
+
+            const SizedBox(
+              height: 3,
+            ),
+
+            Text(
+              label,
+              style:
+                  TextStyle(
+                fontSize: 10,
+                fontWeight: selected
+                    ? FontWeight
+                        .w700
+                    : FontWeight
+                        .w500,
+                color: selected
+                    ? primaryBlue
+                    : const Color(
+                        0xFF64748B,
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

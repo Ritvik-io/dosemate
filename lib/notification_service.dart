@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
@@ -11,95 +12,350 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin notifications =
       FlutterLocalNotificationsPlugin();
 
+  bool _initialized = false;
+
+  // ============================================================
+  // INITIALIZE
+  // ============================================================
+
   Future<void> initialize() async {
-    tz.initializeTimeZones();
+    if (_initialized) {
+      return;
+    }
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    try {
+      // Initialize timezone database.
+      tz.initializeTimeZones();
 
-    const settings = InitializationSettings(
-      android: androidSettings,
-    );
+      // ----------------------------------------------------------
+      // Get device timezone
+      // ----------------------------------------------------------
 
-    await notifications.initialize(settings);
+      final timezoneInfo =
+          await FlutterTimezone.getLocalTimezone();
 
-    final androidPlugin =
-        notifications.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+      String timezoneName = timezoneInfo.identifier;
 
-    await androidPlugin?.requestNotificationsPermission();
+      print('DEVICE TIMEZONE: $timezoneName');
+
+      // ----------------------------------------------------------
+      // Android can return the old alias:
+      //
+      // Asia/Calcutta
+      //
+      // timezone package uses:
+      //
+      // Asia/Kolkata
+      // ----------------------------------------------------------
+
+      if (timezoneName == 'Asia/Calcutta') {
+        timezoneName = 'Asia/Kolkata';
+      }
+
+      // More common aliases can be handled here too.
+      if (timezoneName == 'US/Eastern') {
+        timezoneName = 'America/New_York';
+      }
+
+      if (timezoneName == 'US/Central') {
+        timezoneName = 'America/Chicago';
+      }
+
+      if (timezoneName == 'US/Mountain') {
+        timezoneName = 'America/Denver';
+      }
+
+      if (timezoneName == 'US/Pacific') {
+        timezoneName = 'America/Los_Angeles';
+      }
+
+      // ----------------------------------------------------------
+      // Set timezone
+      // ----------------------------------------------------------
+
+      try {
+        tz.setLocalLocation(
+          tz.getLocation(timezoneName),
+        );
+
+        print(
+          'TIMEZONE SET SUCCESSFULLY: $timezoneName',
+        );
+      } catch (e) {
+        print(
+          'TIMEZONE NOT FOUND: $timezoneName',
+        );
+
+        print(
+          'Falling back to UTC.',
+        );
+
+        tz.setLocalLocation(
+          tz.getLocation('UTC'),
+        );
+      }
+
+      // ----------------------------------------------------------
+      // Android initialization
+      // ----------------------------------------------------------
+
+      const androidSettings =
+          AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
+
+      const settings =
+          InitializationSettings(
+        android: androidSettings,
+      );
+
+      await notifications.initialize(
+        settings,
+      );
+
+      // ----------------------------------------------------------
+      // Android permissions
+      // ----------------------------------------------------------
+
+      final androidPlugin =
+          notifications
+              .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin>();
+
+      // Android 13+
+      await androidPlugin
+          ?.requestNotificationsPermission();
+
+      // Android 12+
+      await androidPlugin
+          ?.requestExactAlarmsPermission();
+
+      // ----------------------------------------------------------
+      // Notification channel
+      // ----------------------------------------------------------
+
+      const channel =
+          AndroidNotificationChannel(
+        'dosemate_medications',
+        'Medication Reminders',
+        description:
+            'Reminders to take scheduled medications.',
+        importance: Importance.high,
+      );
+
+      await androidPlugin
+          ?.createNotificationChannel(channel);
+
+      _initialized = true;
+
+      print(
+        'NOTIFICATION SERVICE INITIALIZED SUCCESSFULLY',
+      );
+    } catch (e, stackTrace) {
+      print(
+        'NOTIFICATION INITIALIZATION ERROR: $e',
+      );
+
+      print(stackTrace);
+
+      // IMPORTANT:
+      // Don't crash the whole app because notifications failed.
+      _initialized = false;
+    }
   }
 
   // ============================================================
-  // SCHEDULE ONE DAILY REMINDER
+  // SCHEDULE DAILY REMINDER
   // ============================================================
 
-  Future<void> scheduleDailyReminder({
+  Future<bool> scheduleDailyReminder({
     required int id,
     required String medicineName,
     required String dosage,
     required String time,
   }) async {
-    final parsedTime = _parseTime(time);
+    try {
+      if (!_initialized) {
+        await initialize();
+      }
 
-    if (parsedTime == null) {
-      return;
-    }
+      // If initialization still failed, stop here.
+      if (!_initialized) {
+        print(
+          'NOTIFICATION ERROR: Service was not initialized.',
+        );
 
-    final now = tz.TZDateTime.now(tz.local);
+        return false;
+      }
 
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      parsedTime.hour,
-      parsedTime.minute,
-    );
+      final parsedTime = _parseTime(time);
 
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(
-        const Duration(days: 1),
+      if (parsedTime == null) {
+        print(
+          'NOTIFICATION ERROR: Invalid time: $time',
+        );
+
+        return false;
+      }
+
+      // ----------------------------------------------------------
+      // Current local time
+      // ----------------------------------------------------------
+
+      final now =
+          tz.TZDateTime.now(tz.local);
+
+      // ----------------------------------------------------------
+      // Today's scheduled time
+      // ----------------------------------------------------------
+
+      var scheduledDate =
+          tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        parsedTime.hour,
+        parsedTime.minute,
       );
-    }
 
-    await notifications.zonedSchedule(
-      id,
-      'Time for your medicine 💊',
-      '$medicineName • $dosage',
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'dosemate_medications',
-          'Medication Reminders',
-          channelDescription:
-              'Reminders to take scheduled medications.',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-      ),
-      androidScheduleMode:
-          AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents:
-          DateTimeComponents.time,
-    );
+      // ----------------------------------------------------------
+      // If time already passed today,
+      // schedule first reminder tomorrow.
+      // ----------------------------------------------------------
+
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate =
+            scheduledDate.add(
+          const Duration(days: 1),
+        );
+      }
+
+      print('--------------------------------');
+      print('SCHEDULING MEDICATION');
+      print('ID: $id');
+      print('MEDICINE: $medicineName');
+      print('DOSAGE: $dosage');
+      print('TIME: $time');
+      print('SCHEDULED: $scheduledDate');
+      print('TIMEZONE: ${tz.local.name}');
+      print('--------------------------------');
+
+      // ----------------------------------------------------------
+      // Notification details
+      // ----------------------------------------------------------
+
+      const androidDetails =
+          AndroidNotificationDetails(
+        'dosemate_medications',
+        'Medication Reminders',
+        channelDescription:
+            'Reminders to take scheduled medications.',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      const notificationDetails =
+          NotificationDetails(
+        android: androidDetails,
+      );
+
+      // ----------------------------------------------------------
+      // Schedule notification
+      // ----------------------------------------------------------
+
+      await notifications.zonedSchedule(
+        id,
+        'Time for your medicine 💊',
+        '$medicineName • $dosage',
+        scheduledDate,
+        notificationDetails,
+        androidScheduleMode:
+            AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents:
+            DateTimeComponents.time,
+      );
+
+      print(
+        'NOTIFICATION SCHEDULED SUCCESSFULLY',
+      );
+
+      return true;
+    } catch (e, stackTrace) {
+      print(
+        'NOTIFICATION SCHEDULING ERROR: $e',
+      );
+
+      print(stackTrace);
+
+      return false;
+    }
   }
 
   // ============================================================
-  // CANCEL ONE REMINDER
+  // CANCEL ONE
   // ============================================================
 
   Future<void> cancelReminder(int id) async {
-    await notifications.cancel(id);
+    try {
+      await notifications.cancel(id);
+
+      print(
+        'NOTIFICATION CANCELLED: $id',
+      );
+    } catch (e) {
+      print(
+        'NOTIFICATION CANCEL ERROR: $e',
+      );
+    }
   }
 
   // ============================================================
-  // CANCEL ALL REMINDERS
+  // CANCEL ALL
   // ============================================================
 
   Future<void> cancelAll() async {
-    await notifications.cancelAll();
+    try {
+      await notifications.cancelAll();
+
+      print(
+        'ALL NOTIFICATIONS CANCELLED',
+      );
+    } catch (e) {
+      print(
+        'NOTIFICATION CANCEL ALL ERROR: $e',
+      );
+    }
+  }
+
+  // ============================================================
+  // PENDING NOTIFICATIONS
+  // ============================================================
+
+  Future<void> printPendingNotifications() async {
+    try {
+      final pending =
+          await notifications
+              .pendingNotificationRequests();
+
+      print(
+        'PENDING NOTIFICATIONS: ${pending.length}',
+      );
+
+      for (final notification in pending) {
+        print(
+          'ID: ${notification.id} '
+          '| TITLE: ${notification.title} '
+          '| BODY: ${notification.body}',
+        );
+      }
+    } catch (e) {
+      print(
+        'PENDING NOTIFICATIONS ERROR: $e',
+      );
+    }
   }
 
   // ============================================================
@@ -108,22 +364,55 @@ class NotificationService {
 
   TimeOfDayData? _parseTime(String value) {
     try {
-      final parts = value.trim().split(' ');
+      final cleaned =
+          value.trim().replaceAll(
+                RegExp(r'\s+'),
+                ' ',
+              );
+
+      final parts =
+          cleaned.split(' ');
 
       if (parts.length != 2) {
         return null;
       }
 
-      final timeParts = parts[0].split(':');
+      final timeParts =
+          parts[0].split(':');
 
       if (timeParts.length != 2) {
         return null;
       }
 
-      int hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
+      int hour =
+          int.parse(timeParts[0]);
 
-      final period = parts[1].toUpperCase();
+      final minute =
+          int.parse(timeParts[1]);
+
+      final period =
+          parts[1].toUpperCase();
+
+      // ----------------------------------------------------------
+      // Validate
+      // ----------------------------------------------------------
+
+      if (hour < 1 || hour > 12) {
+        return null;
+      }
+
+      if (minute < 0 || minute > 59) {
+        return null;
+      }
+
+      if (period != 'AM' &&
+          period != 'PM') {
+        return null;
+      }
+
+      // ----------------------------------------------------------
+      // Convert to 24-hour time
+      // ----------------------------------------------------------
 
       if (period == 'PM' && hour != 12) {
         hour += 12;
@@ -137,11 +426,19 @@ class NotificationService {
         hour: hour,
         minute: minute,
       );
-    } catch (_) {
+    } catch (e) {
+      print(
+        'TIME PARSE ERROR: $e',
+      );
+
       return null;
     }
   }
 }
+
+// ============================================================
+// TIME DATA
+// ============================================================
 
 class TimeOfDayData {
   final int hour;
