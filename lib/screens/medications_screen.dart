@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'add_medicine_screen.dart';
 import 'home_screen.dart';
+import 'history_screen.dart';
+import 'profile_screen.dart';
 
 class MedicationsScreen extends StatelessWidget {
   const MedicationsScreen({super.key});
@@ -235,79 +237,86 @@ class MedicationsScreen extends StatelessWidget {
   // NAV ITEM
   // ================================================================
 
-  Widget _navItem({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required bool selected,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        // HOME
-        if (label == 'Home') {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-            (route) => false,
-          );
-          return;
-        }
+  
+Widget _navItem({
+  required BuildContext context,
+  required IconData icon,
+  required String label,
+  required bool selected,
+}) {
+  return GestureDetector(
+    onTap: () {
+      // HOME
+      if (label == 'Home') {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+          (route) => false,
+        );
+        return;
+      }
 
-        // MEDICATIONS
-        if (label == 'Medications') {
-          return;
-        }
+      // MEDICATIONS
+      if (label == 'Medications') {
+        return;
+      }
 
-        // HISTORY / PROFILE
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '$label will be added next.',
-            ),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+      // HISTORY
+      if (label == 'History') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HistoryScreen(),
           ),
         );
-      },
+        return;
+      }
 
-      behavior: HitTestBehavior.opaque,
-
-      child: SizedBox(
-        width: 78,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 27,
+      // PROFILE
+      if (label == 'Profile') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ProfileScreen(),
+          ),
+        );
+        return;
+      }
+    },
+    behavior: HitTestBehavior.opaque,
+    child: SizedBox(
+      width: 78,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 27,
+            color: selected
+                ? primaryBlue
+                : const Color(0xFF94A3B8),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: selected
+                  ? FontWeight.w700
+                  : FontWeight.w500,
               color: selected
                   ? primaryBlue
-                  : const Color(0xFF94A3B8),
+                  : const Color(0xFF64748B),
             ),
-
-            const SizedBox(height: 4),
-
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: selected
-                    ? FontWeight.w700
-                    : FontWeight.w500,
-                color: selected
-                    ? primaryBlue
-                    : const Color(0xFF64748B),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   // ================================================================
   // ERROR STATE
