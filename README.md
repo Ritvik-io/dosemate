@@ -1,175 +1,151 @@
-# 💊 DoseMate — Smart Medication Companion
+<div align="center">
 
-**Your Smart Medication Companion**
+# 💊 DoseMate
 
-DoseMate is a medication reminder and tracking mobile application designed to help users manage their medication schedules, track doses, and build healthier medication habits. It aims to make medication management simpler for individuals and help families support their loved ones.
+### Your smart medication companion
+
+**Never miss a dose. Build healthier habits.**
+
+![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
+![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)
+[![Release](https://img.shields.io/github/v/release/Ritvik-io/dosemate)](../../releases/latest)
+
+[⬇️ Download APK](../../releases/latest) · [🐛 Report a Bug](../../issues) · [💡 Request a Feature](../../issues)
+
+</div>
+
+---
+
+## 📖 About
+
+DoseMate is a Flutter-based medication reminder and tracking app. It helps you manage your medicines, get timely reminders, and keep a clear history of what you've taken, so staying consistent with your routine becomes effortless.
+
+## 📸 Screenshots
+
+<!-- TODO: add 3-4 screenshots to /screenshots and update the paths -->
+| Home | Add Medicine | Reminders | History |
+|:---:|:---:|:---:|:---:|
+| ![Home](screenshots/home.png) | ![Add](screenshots/add.png) | ![Reminders](screenshots/reminders.png) | ![History](screenshots/history.png) |
 
 ## ✨ Features
 
-- **Medication Management** — Add, view, edit, and delete medication records.
-- **Medication Scheduling** — Set medication details, dosage, frequency, and reminder times.
-- **Dose Tracking** — Track medication doses as taken or skipped.
-- **Medication History** — View recorded dose activity, including medication names, dosages, dates, times, and dose status.
-- **User Authentication** — Firebase Authentication integration for user accounts.
-- **Cloud Data Storage** — Cloud Firestore integration for storing user-specific medication data.
-- **Notifications** — Local medication reminder scheduling.
-- **User-Friendly Interface** — Clean layouts, consistent typography, and a blue-and-white visual theme.
-- **Onboarding Experience** — Introductory screens that explain the app's purpose and help users get started.
-- **Profile & Support** — Dedicated interfaces for account information, notification settings, and app support.
+- 💊 **Medication Management**: add, edit and organize your medicines
+- ⏰ **Smart Reminders**: scheduled notifications so you never miss a dose
+- 📜 **Medication History**: review your past medication activity
+- 🔐 **Secure Authentication**: sign up and log in with Firebase Auth
+- ☁️ **Cloud Sync**: your data is stored in Cloud Firestore
+- 👤 **Profile Section**: manage your personal profile
+- 🎨 **Clean UI**: simple, modern and easy to use
 
-> **Development note:** Features are being developed and tested iteratively. Notification delivery, permanent dose history, and other production-critical behavior must be verified before release.
+## 📲 Installation (Android)
 
-## 🎨 UI/UX Design
-
-The DoseMate interface was designed in **Figma** with an emphasis on clarity, accessibility, and ease of use.
-
-The design process includes:
-
-- Splash screen and app branding
-- Onboarding screens
-- User-type selection
-- Authentication screens
-- Home and medication-management screens
-- History and profile screens
-- Consistent colors, typography, buttons, cards, and navigation
-
-**Design tool:** Figma
+1. Go to the [latest release](../../releases/latest) and download `app-release.apk`.
+2. Open the file on your device.
+3. If prompted, allow **Install from unknown sources** for your browser or file manager.
+4. Tap **Install** and launch DoseMate.
 
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |---|---|
-| Flutter | Cross-platform mobile UI |
-| Dart | Application programming language |
-| Firebase Authentication | User authentication |
-| Cloud Firestore | Cloud database and real-time data |
-| Local Notifications | Scheduled medication reminders |
-| Figma | UI/UX design and prototyping |
-| Git & GitHub | Version control and source-code management |
+| **Flutter** | Cross-platform UI framework |
+| **Dart** | Programming language |
+| **Firebase Authentication** | User sign-up and login |
+| **Cloud Firestore** | Cloud database |
+| **Flutter Local Notifications** | Medication reminders |
 
-## 📱 Application Screens
-
-DoseMate is designed around the following screens:
-
-1. **Splash Screen** — Introduces the DoseMate brand.
-2. **Onboarding** — Explains the app's main benefits.
-3. **User Selection** — Helps users choose whether to manage their own medication or assist a family member.
-4. **Authentication** — Provides account access.
-5. **Home** — Serves as the main medication dashboard.
-6. **Medications** — Displays and manages medication schedules.
-7. **Add/Edit Medication** — Captures medication names, dosage, form, frequency, schedule times, and notes.
-8. **History** — Displays recorded taken and skipped doses.
-9. **Profile** — Provides account and support options.
-
-## 🏗️ Project Structure
+## 📂 Project Structure
 
 ```text
 lib/
-├── assets/
-├── models/
-├── screens/
-│   ├── splash_screen.dart
-│   ├── onboarding_screen.dart
-│   ├── user_type_screen.dart
-│   ├── login_screen.dart
-│   ├── home_screen.dart
-│   ├── medications_screen.dart
-│   ├── add_medicine_screen.dart
-│   └── history_screen.dart
-├── services/
-│   └── notification_service.dart
-├── utils/
-├── widgets/
-├── firebase_options.dart
-└── main.dart
+├── assets/      # Images, icons and static resources
+├── models/      # Data models
+├── screens/     # App screens / pages
+├── services/    # Firebase, notifications and business logic
+├── utils/       # Helpers and constants
+├── widgets/     # Reusable UI components
+└── main.dart    # App entry point
 ```
-
-*The structure above describes the intended organization; filenames may differ as development progresses.*
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-Install the following tools:
-
-- [Flutter SDK](https://docs.flutter.dev/get-started/install)
-- [Dart SDK](https://dart.dev/get-dart)
-- [Android Studio](https://developer.android.com/studio) or VS Code
-- An Android emulator or physical Android device
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (stable channel)
+- Android Studio or VS Code with the Flutter extension
 - A Firebase project
 
-### Installation
-
-**1. Clone the repository**
+### Setup
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/Ritvik-io/dosemate.git
 cd dosemate
-```
 
-**2. Install dependencies**
-
-```bash
+# 2. Install dependencies
 flutter pub get
 ```
 
-**3. Configure Firebase**
+### Firebase configuration
 
-Configure your own Firebase project for the platforms you intend to run. Enable Firebase Authentication providers used by the app and configure Cloud Firestore.
+1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2. Add an Android app using the package name from `android/app/build.gradle`.
+3. Download `google-services.json` and place it in `android/app/`.
+4. Enable **Email/Password** under *Authentication → Sign-in method*.
+5. Create a **Cloud Firestore** database and set appropriate security rules.
 
-Generate or configure the Flutter Firebase options using the [FlutterFire CLI setup guide](https://firebase.google.com/docs/flutter/setup).
+<!-- TODO: confirm these steps match your project (e.g. FlutterFire CLI / firebase_options.dart) -->
 
-Ensure that Firestore Security Rules restrict users to their own data. Never commit service-account private keys, passwords, or other confidential credentials.
-
-**4. Run the application**
+### Run
 
 ```bash
 flutter run
 ```
 
-To check your development environment:
+## 📦 Build a Release APK
 
 ```bash
-flutter doctor
+flutter build apk --release
 ```
 
-## 🔐 Security & Privacy
+Output: `build/app/outputs/flutter-apk/app-release.apk`
 
-DoseMate handles medication-related information, so security and privacy are important.
+## 🔐 Security
 
-- Use Firebase Authentication to identify users.
-- Apply Firestore Security Rules to prevent unauthorized access to user data.
-- Restrict Google API keys to the applications and APIs that require them.
-- Keep private credentials and service-account keys out of version control.
-- Test account deletion, data retention, and notification permissions before production release.
+- Configure Firestore security rules before deploying.
+- **Never commit** `google-services.json`, service-account credentials, keystores or other secrets to a public repository (add them to `.gitignore`).
 
-Firebase client configuration is not a substitute for database security rules.
+## 🗺️ Roadmap
 
-## 🗺️ Future Improvements
+<!-- TODO: edit to match your real plans -->
+- [ ] iOS support
+- [ ] Dose-streak and adherence statistics
+- [ ] Refill reminders
+- [ ] Dark mode
+- [ ] Caregiver / family sharing
 
-- Permanent dose history that remains available after a medication is deleted.
-- Daily, weekly, and monthly medication-adherence summaries.
-- History filters for taken, skipped, and missed doses.
-- Reliable recurring reminders and notification-permission handling.
-- Profile editing and account-management functionality.
-- Family or caregiver support.
-- Improved accessibility and additional UI testing.
-- Automated tests and production-release preparation.
+## 🤝 Contributing
 
-## 🎯 Project Goal
+Contributions, issues and feature requests are welcome! Feel free to open an [issue](../../issues) or submit a pull request.
 
-The goal of DoseMate is to make medication management easier and more reliable through thoughtful UI/UX design, mobile development, cloud integration, and reminder functionality.
+## 📄 License
 
-## 👨‍💻 Developer
+<!-- TODO: add a LICENSE file (e.g. MIT) and keep this line in sync -->
+Distributed under the MIT License. See `LICENSE` for details.
 
-**Ritvik Sharma**
+## 👨‍💻 Author
 
+**Ritvik**
 GitHub: [@Ritvik-io](https://github.com/Ritvik-io)
-
-## ⚠️ Disclaimer
-
-DoseMate is a medication-management and reminder project, not a medical device or substitute for professional medical advice. Users should follow their healthcare professional's instructions. Reminder notifications may be delayed or unavailable depending on device settings and operating-system restrictions.
 
 ---
 
-*Built with Flutter, Firebase, and Figma 💙*
+<div align="center">
+
+⭐ If you find DoseMate useful, consider giving the repo a star!
+
+**DoseMate: Stay Consistent. Stay Healthy.** 💙
+
+</div>
