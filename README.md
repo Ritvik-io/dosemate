@@ -28,10 +28,10 @@ DoseMate is a Flutter-based medication reminder and tracking app. It helps you m
 
 <table>
   <tr>
-    <td align="center"><img src="screenshots/home.png" width="200" /><br /><b>Home</b></td>
-    <td align="center"><img src="screenshots/medications.png" width="200" /><br /><b>Medications</b></td>
-    <td align="center"><img src="screenshots/history.png" width="200" /><br /><b>History</b></td>
-    <td align="center"><img src="screenshots/profile.png" width="200" /><br /><b>Profile</b></td>
+    <td align="center"><img src="Screenshots/home.png" width="200" /><br /><b>Home</b></td>
+    <td align="center"><img src="Screenshots/medications.png" width="200" /><br /><b>Medications</b></td>
+    <td align="center"><img src="Screenshots/history.png" width="200" /><br /><b>History</b></td>
+    <td align="center"><img src="Screenshots/profile.png" width="200" /><br /><b>Profile</b></td>
   </tr>
 </table>
 
