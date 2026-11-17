@@ -22,27 +22,35 @@
 
 DoseMate is a Flutter-based medication reminder and tracking app. It helps you manage your medicines, get timely reminders, and keep a clear history of what you've taken, so staying consistent with your routine becomes effortless.
 
+> **Note:** DoseMate is a reminder and tracking tool. It does not provide medical advice. Always follow your doctor's or pharmacist's instructions.
+
 ## 📸 Screenshots
 
-<!-- TODO: add 3-4 screenshots to /screenshots and update the paths -->
-| Home | Add Medicine | Reminders | History |
-|:---:|:---:|:---:|:---:|
-| ![Home](screenshots/home.png) | ![Add](screenshots/add.png) | ![Reminders](screenshots/reminders.png) | ![History](screenshots/history.png) |
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/home.png" width="200" /><br /><b>Home</b></td>
+    <td align="center"><img src="screenshots/medications.png" width="200" /><br /><b>Medications</b></td>
+    <td align="center"><img src="screenshots/history.png" width="200" /><br /><b>History</b></td>
+    <td align="center"><img src="screenshots/profile.png" width="200" /><br /><b>Profile</b></td>
+  </tr>
+</table>
 
 ## ✨ Features
 
-- 💊 **Medication Management**: add, edit and organize your medicines
-- ⏰ **Smart Reminders**: scheduled notifications so you never miss a dose
-- 📜 **Medication History**: review your past medication activity
+- 🏠 **Daily Dashboard**: a "Next Dose" card and today's medication list at a glance
+- ✅ **Take or Skip**: log each dose with one tap
+- 💊 **Medication Management**: add medicines with dosage, type and daily schedule
+- ⏰ **Multiple Reminder Times**: schedule several doses per day for each medicine
+- 📜 **Medication History**: review taken and skipped doses over time
 - 🔐 **Secure Authentication**: sign up and log in with Firebase Auth
 - ☁️ **Cloud Sync**: your data is stored in Cloud Firestore
-- 👤 **Profile Section**: manage your personal profile
-- 🎨 **Clean UI**: simple, modern and easy to use
+- 👤 **Profile & Settings**: account details, notification settings, and help
+- 🎨 **Clean UI**: simple, modern, easy-to-use design
 
 ## 📲 Installation (Android)
 
-1. Go to the [latest release](../../releases/latest) and download `app-release.apk`.
-2. Open the file on your device.
+1. Go to the [latest release](../../releases/latest) and download the APK.
+2. Open the file on your Android device.
 3. If prompted, allow **Install from unknown sources** for your browser or file manager.
 4. Tap **Install** and launch DoseMate.
 
@@ -96,8 +104,6 @@ flutter pub get
 4. Enable **Email/Password** under *Authentication → Sign-in method*.
 5. Create a **Cloud Firestore** database and set appropriate security rules.
 
-<!-- TODO: confirm these steps match your project (e.g. FlutterFire CLI / firebase_options.dart) -->
-
 ### Run
 
 ```bash
@@ -110,30 +116,20 @@ flutter run
 flutter build apk --release
 ```
 
-Output: `build/app/outputs/flutter-apk/app-release.apk`
+The APK will be generated at:
+
+```text
+build/app/outputs/flutter-apk/app-release.apk
+```
 
 ## 🔐 Security
 
 - Configure Firestore security rules before deploying.
 - **Never commit** `google-services.json`, service-account credentials, keystores or other secrets to a public repository (add them to `.gitignore`).
 
-## 🗺️ Roadmap
-
-<!-- TODO: edit to match your real plans -->
-- [ ] iOS support
-- [ ] Dose-streak and adherence statistics
-- [ ] Refill reminders
-- [ ] Dark mode
-- [ ] Caregiver / family sharing
-
 ## 🤝 Contributing
 
 Contributions, issues and feature requests are welcome! Feel free to open an [issue](../../issues) or submit a pull request.
-
-## 📄 License
-
-<!-- TODO: add a LICENSE file (e.g. MIT) and keep this line in sync -->
-Distributed under the MIT License. See `LICENSE` for details.
 
 ## 👨‍💻 Author
 
